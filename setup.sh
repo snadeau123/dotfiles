@@ -97,9 +97,17 @@ install_oh_my_zsh() {
     print_info "Installing Oh My Zsh..."
 
     # Install oh-my-zsh (unattended)
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-
-    print_success "Oh My Zsh installed successfully"
+    if sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended; then
+        if [ -d "$HOME/.oh-my-zsh" ]; then
+            print_success "Oh My Zsh installed successfully"
+        else
+            print_error "Oh My Zsh installation failed - directory not created"
+            return 1
+        fi
+    else
+        print_error "Oh My Zsh installation failed - please check your internet connection"
+        return 1
+    fi
 }
 
 install_zsh_plugins() {
@@ -110,9 +118,13 @@ install_zsh_plugins() {
     # zsh-syntax-highlighting
     if [ ! -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ]; then
         print_info "Installing zsh-syntax-highlighting..."
-        git clone https://github.com/zsh-users/zsh-syntax-highlighting.git \
-            "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
-        print_success "zsh-syntax-highlighting installed"
+        if git clone https://github.com/zsh-users/zsh-syntax-highlighting.git \
+            "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" 2>&1; then
+            print_success "zsh-syntax-highlighting installed"
+        else
+            print_error "Failed to install zsh-syntax-highlighting"
+            return 1
+        fi
     else
         print_success "zsh-syntax-highlighting already installed"
     fi
@@ -120,9 +132,13 @@ install_zsh_plugins() {
     # zsh-autosuggestions
     if [ ! -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ]; then
         print_info "Installing zsh-autosuggestions..."
-        git clone https://github.com/zsh-users/zsh-autosuggestions.git \
-            "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
-        print_success "zsh-autosuggestions installed"
+        if git clone https://github.com/zsh-users/zsh-autosuggestions.git \
+            "$ZSH_CUSTOM/plugins/zsh-autosuggestions" 2>&1; then
+            print_success "zsh-autosuggestions installed"
+        else
+            print_error "Failed to install zsh-autosuggestions"
+            return 1
+        fi
     else
         print_success "zsh-autosuggestions already installed"
     fi
