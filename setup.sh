@@ -173,10 +173,21 @@ setup_zsh() {
     create_symlink "$DOTFILES_DIR/zsh/.zshrc" "$HOME/.zshrc"
 
     # Set zsh as default shell if not already
-    if [ "$SHELL" != "$(which zsh)" ]; then
+    local current_shell=$(getent passwd "$USER" | cut -d: -f7)
+    local zsh_path=$(which zsh)
+
+    if [ "$current_shell" != "$zsh_path" ]; then
         print_info "Changing default shell to zsh..."
         print_warning "You may need to enter your password"
-        chsh -s "$(which zsh)" || print_warning "Failed to change shell. Run manually: chsh -s \$(which zsh)"
+        if chsh -s "$zsh_path"; then
+            print_success "Default shell changed to zsh"
+            print_warning "You must LOG OUT and LOG BACK IN for this to take effect!"
+        else
+            print_error "Failed to change shell. Run manually: chsh -s $zsh_path"
+            return 1
+        fi
+    else
+        print_success "Default shell is already zsh"
     fi
 
     print_success "Zsh setup complete"
@@ -255,13 +266,16 @@ print_post_install() {
 
     echo -e "${GREEN}Your dotfiles have been installed successfully!${NC}\n"
 
-    echo -e "${BLUE}Next steps:${NC}"
-    echo -e "  1. Restart your terminal or run: ${YELLOW}source ~/.zshrc${NC}"
-    echo -e "  2. If tmux is running, reload config: ${YELLOW}tmux source ~/.tmux.conf${NC}"
+    echo -e "${BLUE}IMPORTANT - Next steps:${NC}"
+    echo -e "  1. ${YELLOW}LOG OUT and LOG BACK IN${NC} to activate zsh as default shell"
+    echo -e "  2. After logging back in, tmux will automatically use zsh"
 
     if command_exists konsole; then
-        echo -e "  3. Restart Konsole to apply the new profile"
+        echo -e "  3. Konsole will open with zsh and your custom profile"
     fi
+
+    echo -e "\n${BLUE}Or to test now without logging out:${NC}"
+    echo -e "  ${YELLOW}exec zsh${NC}  # Start a zsh session immediately"
 
     echo -e "\n${BLUE}Optional dependencies you might want:${NC}"
 
