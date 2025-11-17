@@ -205,6 +205,17 @@ Install clipboard tools:
 - **Wayland:** `sudo apt install wl-clipboard`
 - **macOS:** Built-in (pbcopy)
 
+### Can't copy text with mouse in tmux (over SSH)
+
+When tmux mouse mode is enabled, it captures mouse events. Two solutions:
+
+**Option 1:** Hold **Shift** while selecting text - this bypasses tmux and lets your terminal handle copying
+
+**Option 2:** Toggle mouse mode off temporarily:
+- Press `prefix + m` to disable mouse mode
+- Select and copy text normally in your terminal
+- Press `prefix + m` again to re-enable mouse mode
+
 ### Shell not changing to zsh
 
 Run manually:
