@@ -2,7 +2,8 @@
 ColorScheme=Breeze
 
 [General]
-Name=Profile 1
+Command=/usr/bin/zsh
+Name=Default
 Parent=FALLBACK/
 
 [Scrolling]
