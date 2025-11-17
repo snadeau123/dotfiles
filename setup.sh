@@ -89,9 +89,16 @@ command_exists() {
 install_oh_my_zsh() {
     print_header "Installing Oh My Zsh"
 
-    if [ -d "$HOME/.oh-my-zsh" ]; then
+    # Check if Oh My Zsh is properly installed (not just the directory)
+    if [ -f "$HOME/.oh-my-zsh/oh-my-zsh.sh" ]; then
         print_success "Oh My Zsh already installed"
         return 0
+    fi
+
+    # If directory exists but oh-my-zsh.sh doesn't, installation is corrupted
+    if [ -d "$HOME/.oh-my-zsh" ]; then
+        print_warning "Incomplete Oh My Zsh installation detected, removing..."
+        rm -rf "$HOME/.oh-my-zsh"
     fi
 
     print_info "Installing Oh My Zsh..."
