@@ -41,7 +41,8 @@ My personal development environment configuration for Zsh, Tmux, and Konsole.
 
 ### Konsole Configuration
 
-- **Breeze color scheme**
+- **Custom Breeze color scheme** (modified variant)
+- **Zsh as default shell** - Opens with zsh automatically
 - **Custom window settings** and toolbar configuration
 - Optimized for multi-monitor setups
 
@@ -100,6 +101,7 @@ ln -sf ~/dotfiles/tmux/.tmux.conf ~/.tmux.conf
 
 # Konsole (KDE only)
 ln -sf ~/dotfiles/konsole/Default.profile ~/.local/share/konsole/Default.profile
+ln -sf ~/dotfiles/konsole/Breeze.colorscheme ~/.local/share/konsole/Breeze.colorscheme
 ln -sf ~/dotfiles/konsole/konsolerc ~/.config/konsolerc
 ```
 

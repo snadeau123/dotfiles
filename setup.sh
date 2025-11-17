@@ -218,6 +218,10 @@ setup_konsole() {
     create_symlink "$DOTFILES_DIR/konsole/Default.profile" \
         "$HOME/.local/share/konsole/Default.profile"
 
+    # Link custom Breeze color scheme
+    create_symlink "$DOTFILES_DIR/konsole/Breeze.colorscheme" \
+        "$HOME/.local/share/konsole/Breeze.colorscheme"
+
     # Link konsolerc
     create_symlink "$DOTFILES_DIR/konsole/konsolerc" \
         "$HOME/.config/konsolerc"
