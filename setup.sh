@@ -193,6 +193,50 @@ setup_zsh() {
     print_success "Zsh setup complete"
 }
 
+setup_env() {
+    print_header "Setting Up Environment Variables"
+
+    local env_file="$HOME/.dotfiles.env"
+    local template_file="$DOTFILES_DIR/zsh/.env.example"
+
+    if [ -f "$env_file" ]; then
+        print_success "Environment file already exists: $env_file"
+        return 0
+    fi
+
+    print_info "Some features require API keys stored in ~/.dotfiles.env"
+    print_info "This file is NOT committed to git for security."
+
+    echo ""
+    read -p "Do you want to set up environment variables now? (y/N) " -n 1 -r
+    echo ""
+
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        # Copy template
+        cp "$template_file" "$env_file"
+
+        # Ask for OpenRouter API key
+        echo ""
+        print_info "Enter your OpenRouter API key (or press Enter to skip):"
+        read -r api_key
+
+        if [ -n "$api_key" ]; then
+            # Replace placeholder with actual key
+            sed -i "s|your-api-key-here|$api_key|" "$env_file"
+            print_success "API key saved to $env_file"
+        else
+            print_warning "Skipped - edit $env_file later to add your API key"
+        fi
+
+        # Secure the file permissions
+        chmod 600 "$env_file"
+        print_success "Set secure permissions (600) on $env_file"
+    else
+        print_warning "Skipped environment setup"
+        print_info "To set up later, copy zsh/.env.example to ~/.dotfiles.env"
+    fi
+}
+
 setup_tmux() {
     print_header "Setting Up Tmux Configuration"
 
@@ -287,6 +331,13 @@ print_post_install() {
         echo -e "  • tmux (terminal multiplexer): ${YELLOW}sudo apt install tmux${NC} or ${YELLOW}brew install tmux${NC}"
     fi
 
+    if [ ! -f "$HOME/.dotfiles.env" ]; then
+        echo -e "\n${BLUE}API Keys:${NC}"
+        echo -e "  To use claude-* aliases with OpenRouter, create ~/.dotfiles.env:"
+        echo -e "  ${YELLOW}cp $DOTFILES_DIR/zsh/.env.example ~/.dotfiles.env${NC}"
+        echo -e "  Then edit it to add your API key"
+    fi
+
     echo -e "\n${GREEN}Happy coding!${NC}\n"
 }
 
@@ -318,6 +369,7 @@ main() {
     setup_zsh
     setup_tmux
     setup_konsole
+    setup_env
 
     # Print post-install instructions
     print_post_install

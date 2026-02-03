@@ -112,6 +112,62 @@ fi
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
+##### Claude Code via OpenRouter #####
+# Load API keys from ~/.dotfiles.env (not committed to git)
+if [ -f "$HOME/.dotfiles.env" ]; then
+  source "$HOME/.dotfiles.env"
+fi
+
+# Model-specific launcher (OpenRouter only for this alias)
+alias claude-glm='ANTHROPIC_BASE_URL="https://openrouter.ai/api" \
+  ANTHROPIC_AUTH_TOKEN="$OPENROUTER_API_KEY" \
+  ANTHROPIC_API_KEY="" \
+  ANTHROPIC_DEFAULT_SONNET_MODEL="z-ai/glm-4.7" \
+  ANTHROPIC_DEFAULT_OPUS_MODEL="z-ai/glm-4.7" \
+  ANTHROPIC_DEFAULT_HAIKU_MODEL="z-ai/glm-4.5-air" \
+  claude'
+
+# Model-specific launcher for MiniMax M2.1 (all tiers)
+alias claude-mm='ANTHROPIC_BASE_URL="https://openrouter.ai/api" \
+  ANTHROPIC_AUTH_TOKEN="$OPENROUTER_API_KEY" \
+  ANTHROPIC_API_KEY="" \
+  ANTHROPIC_DEFAULT_SONNET_MODEL="minimax/minimax-m2.1" \
+  ANTHROPIC_DEFAULT_OPUS_MODEL="minimax/minimax-m2.1" \
+  ANTHROPIC_DEFAULT_HAIKU_MODEL="minimax/minimax-m2.1" \
+  claude'
+
+# Model-specific launcher for DeepSeek V3.2 (all tiers)
+alias claude-ds='ANTHROPIC_BASE_URL="https://openrouter.ai/api" \
+  ANTHROPIC_AUTH_TOKEN="$OPENROUTER_API_KEY" \
+  ANTHROPIC_API_KEY="" \
+  ANTHROPIC_DEFAULT_SONNET_MODEL="deepseek/deepseek-v3.2" \
+  ANTHROPIC_DEFAULT_OPUS_MODEL="deepseek/deepseek-v3.2" \
+  ANTHROPIC_DEFAULT_HAIKU_MODEL="deepseek/deepseek-v3.2" \
+  claude'
+
+# Model-specific launcher for Kimi K2.5 (all tiers)
+alias claude-kk='ANTHROPIC_BASE_URL="https://openrouter.ai/api" \
+  ANTHROPIC_AUTH_TOKEN="$OPENROUTER_API_KEY" \
+  ANTHROPIC_API_KEY="" \
+  ANTHROPIC_DEFAULT_SONNET_MODEL="moonshotai/kimi-k2.5" \
+  ANTHROPIC_DEFAULT_OPUS_MODEL="moonshotai/kimi-k2.5" \
+  ANTHROPIC_DEFAULT_HAIKU_MODEL="moonshotai/kimi-k2.5" \
+  claude'
+
+# Flexible helper: claude-or <sonnet> [opus] [haiku]
+claude-or () {
+  local sonnet="$1"
+  local opus="${2:-$1}"
+  local haiku="${3:-$1}"
+  ANTHROPIC_BASE_URL="https://openrouter.ai/api" \
+  ANTHROPIC_AUTH_TOKEN="$OPENROUTER_API_KEY" \
+  ANTHROPIC_API_KEY="" \
+  ANTHROPIC_DEFAULT_SONNET_MODEL="$sonnet" \
+  ANTHROPIC_DEFAULT_OPUS_MODEL="$opus" \
+  ANTHROPIC_DEFAULT_HAIKU_MODEL="$haiku" \
+  claude
+}
+
 
 ##### Core Zsh #####
 export HISTFILE=~/.zsh_history
@@ -201,3 +257,8 @@ fi
 unset __conda_setup
 # <<< conda initialize <<<
 
+export PATH=$PATH:/usr/local/go/bin
+
+# Added by flyctl installer
+export FLYCTL_INSTALL="/home/snadeau/.fly"
+export PATH="$FLYCTL_INSTALL/bin:$PATH"
