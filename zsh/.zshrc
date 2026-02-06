@@ -168,6 +168,11 @@ claude-or () {
   claude
 }
 
+##### Claude Code via Cerebras (using claude-code-router) #####
+# Requires: npm install -g @musistudio/claude-code-router
+# Config at: ~/.claude-code-router/config.json
+alias claude-glm-cb='CEREBRAS_API_KEY="$CEREBRAS_API_KEY" ccr code'
+
 
 ##### Core Zsh #####
 export HISTFILE=~/.zsh_history
