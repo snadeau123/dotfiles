@@ -221,11 +221,22 @@ setup_env() {
         read -r api_key
 
         if [ -n "$api_key" ]; then
-            # Replace placeholder with actual key
             sed -i "s|your-api-key-here|$api_key|" "$env_file"
-            print_success "API key saved to $env_file"
+            print_success "OpenRouter API key saved to $env_file"
         else
-            print_warning "Skipped - edit $env_file later to add your API key"
+            print_warning "Skipped - edit $env_file later to add your OpenRouter API key"
+        fi
+
+        # Ask for Cerebras API key
+        echo ""
+        print_info "Enter your Cerebras API key (or press Enter to skip):"
+        read -r cerebras_key
+
+        if [ -n "$cerebras_key" ]; then
+            sed -i "s|your-cerebras-api-key-here|$cerebras_key|" "$env_file"
+            print_success "Cerebras API key saved to $env_file"
+        else
+            print_warning "Skipped - edit $env_file later to add your Cerebras API key"
         fi
 
         # Secure the file permissions
@@ -282,36 +293,53 @@ setup_claude_code_router() {
     # Create config directory
     local config_dir="$HOME/.claude-code-router"
     local config_file="$config_dir/config.json"
+    local transformer_file="$config_dir/cerebras-transformer.js"
 
     mkdir -p "$config_dir"
+
+    # Link the custom Cerebras transformer
+    create_symlink "$DOTFILES_DIR/claude-code-router/cerebras-transformer.js" "$transformer_file"
 
     # Create config file if it doesn't exist
     if [ -f "$config_file" ]; then
         print_success "Config file already exists: $config_file"
     else
         print_info "Creating claude-code-router config..."
-        cat > "$config_file" << 'EOF'
+        # Use $HOME expansion for the transformer path
+        cat > "$config_file" << EOF
 {
-  "providers": [
+  "LOG": false,
+  "LOG_LEVEL": "debug",
+  "HOST": "127.0.0.1",
+  "PORT": 3456,
+  "API_TIMEOUT_MS": "600000",
+  "transformers": [
+    {
+      "path": "$HOME/.claude-code-router/cerebras-transformer.js"
+    }
+  ],
+  "Providers": [
     {
       "name": "cerebras",
       "api_base_url": "https://api.cerebras.ai/v1/chat/completions",
-      "api_key": "$CEREBRAS_API_KEY",
+      "api_key": "\${CEREBRAS_API_KEY}",
       "models": [
-        "glm-4.7",
-        "llama-3.3-70b",
-        "llama-4-scout-17b-16e-instruct",
-        "deepseek-r1-distill-llama-70b"
+        "zai-glm-4.7"
       ],
       "transformer": {
-        "use": ["cerebras"]
+        "use": ["cerebras", "maxtoken", {"max_tokens": 120000}]
       }
     }
   ],
-  "router": {
-    "default": "cerebras,glm-4.7"
-  },
-  "api_timeout": 300000
+  "Router": {
+    "default": "cerebras,zai-glm-4.7",
+    "background": "cerebras,zai-glm-4.7",
+    "think": "cerebras,zai-glm-4.7",
+    "longContext": "",
+    "longContextThreshold": 50000,
+    "webSearch": "",
+    "image": ""
+  }
 }
 EOF
         print_success "Created config: $config_file"
