@@ -255,6 +255,112 @@ setup_tmux() {
     print_success "Tmux setup complete"
 }
 
+setup_claude_code_router() {
+    print_header "Setting Up Claude Code Router"
+
+    # Check if npm is installed
+    if ! command_exists npm; then
+        print_warning "npm not found - skipping claude-code-router installation"
+        print_info "Install Node.js/npm first, then run: npm install -g @musistudio/claude-code-router"
+        return 0
+    fi
+
+    # Check if ccr is already installed
+    if command_exists ccr; then
+        print_success "claude-code-router already installed"
+    else
+        print_info "Installing claude-code-router..."
+        if npm install -g @musistudio/claude-code-router; then
+            print_success "claude-code-router installed"
+        else
+            print_error "Failed to install claude-code-router"
+            print_info "Try manually: npm install -g @musistudio/claude-code-router"
+            return 1
+        fi
+    fi
+
+    # Create config directory
+    local config_dir="$HOME/.claude-code-router"
+    local config_file="$config_dir/config.json"
+
+    mkdir -p "$config_dir"
+
+    # Create config file if it doesn't exist
+    if [ -f "$config_file" ]; then
+        print_success "Config file already exists: $config_file"
+    else
+        print_info "Creating claude-code-router config..."
+        cat > "$config_file" << 'EOF'
+{
+  "providers": [
+    {
+      "name": "cerebras",
+      "api_base_url": "https://api.cerebras.ai/v1/chat/completions",
+      "api_key": "$CEREBRAS_API_KEY",
+      "models": [
+        "glm-4.7",
+        "llama-3.3-70b",
+        "llama-4-scout-17b-16e-instruct",
+        "deepseek-r1-distill-llama-70b"
+      ],
+      "transformer": {
+        "use": ["cerebras"]
+      }
+    }
+  ],
+  "router": {
+    "default": "cerebras,glm-4.7"
+  },
+  "api_timeout": 300000
+}
+EOF
+        print_success "Created config: $config_file"
+    fi
+
+    print_success "Claude Code Router setup complete"
+    print_info "Use 'claude-glm-cb' alias to run Claude Code via Cerebras"
+}
+
+setup_claude_code() {
+    print_header "Setting Up Claude Code"
+
+    local claude_dir="$HOME/.claude"
+    mkdir -p "$claude_dir"
+
+    # Link statusline script
+    create_symlink "$DOTFILES_DIR/claude/statusline.sh" "$claude_dir/statusline.sh"
+
+    # Add statusLine config to settings.json
+    local settings_file="$claude_dir/settings.json"
+
+    if [ -f "$settings_file" ]; then
+        # Check if statusLine is already configured
+        if jq -e '.statusLine' "$settings_file" >/dev/null 2>&1; then
+            print_success "statusLine already configured in settings.json"
+        else
+            # Merge statusLine into existing settings
+            local tmp_file
+            tmp_file=$(mktemp)
+            jq '. + {"statusLine": {"type": "command", "command": "~/.claude/statusline.sh"}}' "$settings_file" > "$tmp_file" && mv "$tmp_file" "$settings_file"
+            print_success "Added statusLine config to existing settings.json"
+        fi
+    else
+        # Create new settings.json with statusLine
+        cat > "$settings_file" << 'EOF'
+{
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline.sh"
+  }
+}
+EOF
+        print_success "Created settings.json with statusLine config"
+    fi
+
+    print_success "Claude Code setup complete"
+    print_info "Status bar shows: session name | git branch | context usage | model | directory"
+}
+
 setup_konsole() {
     print_header "Setting Up Konsole Configuration"
 
@@ -333,9 +439,11 @@ print_post_install() {
 
     if [ ! -f "$HOME/.dotfiles.env" ]; then
         echo -e "\n${BLUE}API Keys:${NC}"
-        echo -e "  To use claude-* aliases with OpenRouter, create ~/.dotfiles.env:"
+        echo -e "  To use claude-* aliases, create ~/.dotfiles.env:"
         echo -e "  ${YELLOW}cp $DOTFILES_DIR/zsh/.env.example ~/.dotfiles.env${NC}"
-        echo -e "  Then edit it to add your API key"
+        echo -e "  Then edit it to add your API keys:"
+        echo -e "    • OPENROUTER_API_KEY - for claude-glm, claude-mm, etc."
+        echo -e "    • CEREBRAS_API_KEY   - for claude-glm-cb (Cerebras)"
     fi
 
     echo -e "\n${GREEN}Happy coding!${NC}\n"
@@ -350,7 +458,9 @@ main() {
     echo -e "This will install and configure:\n"
     echo -e "  • Zsh with Oh My Zsh and plugins"
     echo -e "  • Tmux configuration"
-    echo -e "  • Konsole profiles (if available)\n"
+    echo -e "  • Konsole profiles (if available)"
+    echo -e "  • Claude Code Router (for Cerebras inference)"
+    echo -e "  • Claude Code status line\n"
 
     # Ask for confirmation unless --yes flag is provided
     if [[ "$1" != "--yes" && "$1" != "-y" ]]; then
@@ -369,6 +479,8 @@ main() {
     setup_zsh
     setup_tmux
     setup_konsole
+    setup_claude_code_router
+    setup_claude_code
     setup_env
 
     # Print post-install instructions
