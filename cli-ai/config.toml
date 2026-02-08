@@ -1,0 +1,13 @@
+[provider]
+primary = "groq"                    # "groq" or "cerebras"
+model = "openai/gpt-oss-120b"       # uncomment to override default
+
+[context]
+history_lines = 20                  # terminal history lines to include
+
+[tools]
+max_iterations = 5                  # max tool call rounds
+max_file_lines = 500                # max lines per file read
+
+[debug]
+enabled = false                     # set true to log conversations to ~/.local/share/cli-ai/debug.log

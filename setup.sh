@@ -389,6 +389,49 @@ EOF
     print_info "Status bar shows: session name | git branch | context usage | model | directory"
 }
 
+setup_cli_ai() {
+    print_header "Setting Up CLI AI"
+
+    # Check if pipx is installed
+    if ! command_exists pipx; then
+        print_warning "pipx not found - skipping cli-ai installation"
+        print_info "Install pipx first: pip install --user pipx"
+        return 0
+    fi
+
+    # Clone or update the repo
+    local cli_ai_dir="$HOME/Projects/cli_ai"
+    if [ -d "$cli_ai_dir" ]; then
+        print_success "cli-ai repo already exists at $cli_ai_dir"
+    else
+        print_info "Cloning cli-ai..."
+        mkdir -p "$HOME/Projects"
+        if git clone https://github.com/snadeau123/cli-ai.git "$cli_ai_dir"; then
+            print_success "cli-ai cloned to $cli_ai_dir"
+        else
+            print_error "Failed to clone cli-ai"
+            return 1
+        fi
+    fi
+
+    # Install via pipx
+    print_info "Installing cli-ai via pipx..."
+    if pipx install --force "$cli_ai_dir" 2>&1 | tail -1; then
+        print_success "cli-ai installed via pipx"
+    else
+        print_error "Failed to install cli-ai"
+        return 1
+    fi
+
+    # Link config file
+    local config_dir="$HOME/.config/cli-ai"
+    mkdir -p "$config_dir"
+    create_symlink "$DOTFILES_DIR/cli-ai/config.toml" "$config_dir/config.toml"
+
+    print_success "CLI AI setup complete"
+    print_info "Use Alt+L in zsh to translate natural language to shell commands"
+}
+
 setup_konsole() {
     print_header "Setting Up Konsole Configuration"
 
@@ -472,6 +515,7 @@ print_post_install() {
         echo -e "  Then edit it to add your API keys:"
         echo -e "    • OPENROUTER_API_KEY - for claude-glm, claude-mm, etc."
         echo -e "    • CEREBRAS_API_KEY   - for claude-glm-cb (Cerebras)"
+        echo -e "    • GROQ_API_KEY       - for cli-ai (Alt+L shell commands)"
     fi
 
     echo -e "\n${GREEN}Happy coding!${NC}\n"
@@ -488,7 +532,8 @@ main() {
     echo -e "  • Tmux configuration"
     echo -e "  • Konsole profiles (if available)"
     echo -e "  • Claude Code Router (for Cerebras inference)"
-    echo -e "  • Claude Code status line\n"
+    echo -e "  • Claude Code status line"
+    echo -e "  • CLI AI (natural language shell commands)\n"
 
     # Ask for confirmation unless --yes flag is provided
     if [[ "$1" != "--yes" && "$1" != "-y" ]]; then
@@ -509,6 +554,7 @@ main() {
     setup_konsole
     setup_claude_code_router
     setup_claude_code
+    setup_cli_ai
     setup_env
 
     # Print post-install instructions
